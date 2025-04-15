@@ -7,6 +7,7 @@ import {
   registerSchema,
 } from "../../common/validators/auth.validator";
 import { setAuthenticationCookies } from "../../common/utils/cookie";
+import { UnauthorizedException } from "../../common/utils/catch-errors";
 
 export class AuthController {
   private authService: AuthService;
@@ -45,6 +46,15 @@ export class AuthController {
           mfaRequired,
           user,
         });
+    }
+  );
+  public refreshToken = asyncHandler(
+    async (req: Request, res: Response): Promise<any> => {
+      const refreshToken = req.cookies.refreshToken as string | undefined;
+      if (!refreshToken) {
+        throw new UnauthorizedException("Missing refresh token");
+      }
+      await this.authService.refreshToken(refreshToken);
     }
   );
 }

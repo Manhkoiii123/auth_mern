@@ -3,6 +3,7 @@ import { VerificationEnum } from "../../common/enums/verification-code.enum";
 import { LoginDto, RegisterDto } from "../../common/interface/auth.interface";
 import { BadRequestException } from "../../common/utils/catch-errors";
 import { fortyFiveMinutesFromNow } from "../../common/utils/date-time";
+import { refreshTokenSignOptions, signJwtToken } from "../../common/utils/jwt";
 import { config } from "../../config/app.config";
 import SessionModel from "../../database/models/session.model";
 import UserModel from "../../database/models/user.model";
@@ -67,27 +68,17 @@ export class AuthService {
       userId: user._id,
       userAgent,
     });
-    const accessToken = jwt.sign(
+    const accessToken = signJwtToken({
+      userId: user._id,
+      sessionId: session._id,
+    });
+
+    const refreshToken = signJwtToken(
       {
         sessionId: session._id,
       },
-      config.JWT.SECRET as string,
-      {
-        audience: ["user"],
-        expiresIn: "15m",
-      }
+      refreshTokenSignOptions
     );
-    const refreshToken = jwt.sign(
-      {
-        sessionId: session._id,
-      },
-      config.JWT.SECRET as string,
-      {
-        audience: ["user"],
-        expiresIn: "30d",
-      }
-    );
-    console.log("🚀 ~ AuthService ~ login ~ refreshToken:", refreshToken);
     return {
       user,
       accessToken,
@@ -95,4 +86,5 @@ export class AuthService {
       mfaRequired: true,
     };
   }
+  public async refreshToken(refreshToken: string) {}
 }
