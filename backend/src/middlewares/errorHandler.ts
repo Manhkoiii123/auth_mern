@@ -2,6 +2,10 @@ import { z } from "zod";
 import { ErrorRequestHandler, Response } from "express";
 import { HTTPSTATUS } from "../config/http.config";
 import { AppError } from "../common/utils/AppError";
+import {
+  clearAuthenticationCookies,
+  REFRESH_PATH,
+} from "../common/utils/cookie";
 
 const formatZodError = (res: Response, error: z.ZodError) => {
   const errors = error?.issues?.map((err) => ({
@@ -27,7 +31,9 @@ export const errorHandler: ErrorRequestHandler = (
       message: "Invalid JSON format, please check your request body",
     });
   }
-
+  if (req.path === REFRESH_PATH) {
+    clearAuthenticationCookies(res);
+  }
   if (error instanceof z.ZodError) {
     return formatZodError(res, error);
   }
